@@ -33,6 +33,7 @@ body:hover {
 /* global 
 ==============*/
 .page {
+    display: flex;
     padding: 0;
     margin: 0;
 
@@ -267,7 +268,7 @@ h3 {
     display: flex;
     flex-wrap: wrap; /*Allows items to wrap onto multiple lines*/
     justify-content: space-between; /*Relatively spaces out items*/
-
+	
     margin: 10px;
 }
 .box {
@@ -275,8 +276,10 @@ h3 {
     flex-direction: column;
 
     padding: auto;
+        padding-top: 10px;
     margin-right: 10px;
     margin-bottom: 10px;
+    
 
     /*flex: 1 0 30%; /*flex-grow: 1 (items can grow if there's space) 
     flex-shrink: 0 (items won't shrink if there's not enough space) 
@@ -293,12 +296,18 @@ h3 {
     text-align: center;
     align-items: center;
     justify-content: center;
+        
+    overflow-wrap: break-word;
+    overflow-y: auto;
+    overflow-wrap: normal;
+
 }
 .box:hover {
     background-color: #CCC9DC;
 }
 
 .box-title {
+    overflow-wrap: break-word;
     font-size: 20px;
     color: #131e27;
     font-weight: bold;
@@ -308,8 +317,12 @@ h3 {
 .info-box {
     display: flex;
     flex-direction: row;
+        
+        
+    overflow-wrap: break-word;
+       
 
-    width: 90%;
+    width: fit-content;
     height: fit-content;
 
     background-color: none;
@@ -352,12 +365,19 @@ h3 {
     font-size: 12px;
     color: #000000;
 
-    margin-top: 10px;
+    margin-top: 30px;
     margin-bottom: 10px;
     padding: 5px;
     border-radius: 10px;
+        
+    overflow-wrap: break-word;
+       
+
+    width: fit-content;
+    height: fit-content;
 }
 .info-box:hover {
     background-color: #aeabbb;
 }
+
 
