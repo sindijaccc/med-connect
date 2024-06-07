@@ -7,7 +7,7 @@ $dbname = "4431740_sterling888";
 
 $conn = new mysqli($hostname, $username, $password, $dbname);
 
-/* //test if you can connect to the databse
+/* //test if you can connect to the database
 if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
