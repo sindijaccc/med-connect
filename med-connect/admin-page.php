@@ -20,8 +20,8 @@ include "db.php";
             
             <div class="main-box">
                 <div class="box-field" style="height:100%; width:100%">
-                        <div class="box" style="width: 450px; height:500px">
-                            <div class="box-title">Visi ieraksti</div>
+                        <div class="box" style="width: 350px; height:500px">
+                            <div class="box-title">Visi pacienti</div>
                             <?php
                                 // Fetch all patients
                                 function getPatients($conn) {
@@ -91,64 +91,86 @@ include "db.php";
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <p>No records found for the selected user.</p>
+                            <p>Šim pacientam ieraksti vel nav izveidoti.</p>
                         <?php endif; ?>
                     </div>
 
                             
 
-                        <div class="box" style="width: 350px; height:500px">
-                            <div class="box-title">Visi ārsti</div>
-                                
-                                 <?php
-                                // Fetch all patients
-                                function getDoctors($conn) {
-                                    $sql = "SELECT * FROM doctors";
-                                    $result = $conn->query($sql);
-                                    $doctors = [];
-                                    if ($result->num_rows > 0) {
-                                        while ($row = $result->fetch_assoc()) {
-                                            $doctors[] = $row;
-                                        }
+                        <div class="box" style="width: 350px; height:500px;">
+                        <div class="box-title">Visi ārsti</div>
+                        <?php
+                            // Fetch all doctors
+                            function getDoctors($conn) {
+                                $sql = "SELECT id, first_name, last_name, email, phone FROM doctors";
+                                $result = $conn->query($sql);
+                                $doctors = [];
+                                if ($result->num_rows > 0) {
+                                    while ($row = $result->fetch_assoc()) {
+                                        $doctors[] = $row;
                                     }
-                                    return $doctors;
                                 }
-                                
-                                $doctors = getDoctors($conn);
+                                return $doctors;
+                            }
 
-                                ?>
-                                
-                                <!-- get user id and name from database using php function-->
-                                  <div class="form-group">
-                                    <form method="GET" action="">
-                                        <select class="form-select" name="doctor_id" onchange="this.form.submit()">
-                                            <option value="">Izvēlieties ārstu</option>
-                                            <?php foreach ($doctors as $doctor): ?>
-                                                <option value="<?php echo $doctor['id']; ?>">
-                                                    <?php echo htmlspecialchars($doctor['first_name'] . ' ' . $doctor['last_name']); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </form>
+                            // Fetch doctor profiles
+                            function getDoctorProfile($conn, $doctor_id) {
+                                $sql = "SELECT id, first_name, last_name, email, phone, occupation FROM doctors WHERE id = ?";
+                                $stmt = $conn->prepare($sql);
+                                $stmt->bind_param("i", $doctor_id);
+                                $stmt->execute();
+                                $result = $stmt->get_result();
+                                $profile = null;
+                                if ($result->num_rows > 0) {
+                                    $profile = $result->fetch_assoc();
+                                }
+                                return $profile;
+                            }
+
+                            // Get all doctors
+                            $doctors = getDoctors($conn);
+
+                            // If a doctor is selected, get their profile
+                            $selected_doctor_id = isset($_GET['doctor_id']) ? intval($_GET['doctor_id']) : null;
+                            $doctor_profile = null;
+                            if ($selected_doctor_id) {
+                                $doctor_profile = getDoctorProfile($conn, $selected_doctor_id);
+                            }
+                        ?>
+
+                        <div class="form-group">
+                            <form method="GET" action="">
+                                <select class="form-select" name="doctor_id" onchange="this.form.submit()">
+                                    <option value="">Izvēlieties ārstu</option>
+                                    <?php foreach ($doctors as $doctor): ?>
+                                        <option value="<?php echo $doctor['id']; ?>" <?php echo ($selected_doctor_id == $doctor['id']) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($doctor['first_name'] . ' ' . $doctor['last_name']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </form>
+                        </div>
+
+                        <?php if ($doctor_profile): ?>
+                            <div class="info-box" style="flex-direction:column;">
+                                <div class="info-box-title">
+                                    <?php echo htmlspecialchars($doctor_profile['first_name'] . ' ' . $doctor_profile['last_name']); ?>
                                 </div>
-                                
-    							<?php foreach ($doctors as $doctor): ?>
-                                <div class="info-box">
-                                    <div class="info-box-title">
-                                        <!-- get all the doctor information from the db table - doctors and place it here-->
-										<?php echo htmlspecialchars($doctor['first_name'] . ' ' . $doctor['last_name']); ?>
-                                    </div>
-                                        
-                                    <div style="margin-right:5px">
-                                        <?php echo "E-pasts ". htmlspecialchars($doctor['email']); ?>
-                                    </div>       
-                                    <div>
-                                        <?php echo "Tel.nr. ". htmlspecialchars($doctor['phone']); ?>
-                                    </div> 
+                                <div>
+                                    <?php echo "E-pasts: " . htmlspecialchars($doctor_profile['email']); ?>
                                 </div>
-                                <?php endforeach; ?>
-                                
+                                <div>
+                                    <?php echo "Tel.nr.: " . htmlspecialchars($doctor_profile['phone']); ?>
+                                </div>
+                                <div>
+                                    <?php echo "Specialitāte: " . htmlspecialchars($doctor_profile['occupation']); ?>
+                                </div>
                             </div>
+                        <?php else: ?>
+                            <p>Šim ārstam profila informācija nav atrasta.</p>
+                        <?php endif; ?>
+                        </div>
+
 
                             <div class="box" style="width: 350px; height:500px">
                                 <div class="box-title" style="margin-bottom: 0;">Pievienot lietotāju</div>
@@ -187,7 +209,7 @@ include "db.php";
                                             </div>
 
                                             <div class="form-group">
-                                                <textarea class="form-textarea" name="med_history" placeholder="Ievadiet nozīmīgu medicīnisko info šeit..." style="height: 50px;"></textarea>
+                                                <textarea class="form-textarea" name="med_history" placeholder="Ievadiet nozīmīgu info šeit..." style="height: 50px;"></textarea>
                                             </div>
 
                                             <button class="main-button" type="submit" name="submit" style="margin-top: 0;">Pievienot lietotāju</button>
@@ -208,7 +230,7 @@ include "db.php";
                                             if ($user_type === "pacients") {
                                                 $sql = $conn->prepare("INSERT INTO patients (first_name, last_name, email, phone, user_code, password, med_history) VALUES (?, ?, ?, ?, ?, ?, ?)");
                                             } elseif ($user_type === "arsts") {
-                                                $sql = $conn->prepare("INSERT INTO doctors (first_name, last_name, email, phone, user_code, password, med_history) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                                                $sql = $conn->prepare("INSERT INTO doctors (first_name, last_name, email, phone, user_code, password, occupation) VALUES (?, ?, ?, ?, ?, ?, ?)");
                                             }
 
                                             if ($sql) {
@@ -231,7 +253,7 @@ include "db.php";
             </div> <!-- /* main box -->
 
             <footer class="center-horizontal" style="display: flex; flex-direction: row; justify-content: end;">
-                <button class="red-button" onclick="document.location.href='log-out.php?id<?php echo $_GET['id']?>';">Iziet</button>
+                <button class="red-button" onclick="document.location.href='log-out.php?id<?php echo "0"?>';">Iziet</button>
             </footer>
 
         </div> <!-- /* main content -->
