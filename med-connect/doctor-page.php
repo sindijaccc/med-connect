@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['record_response']) && 
     $stmt = $conn->prepare("INSERT INTO doctor_responses (record_id, patient_id, doctor_id, record_response) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("iiis", $record_id, $patient_id, $doctor_id, $record_response);
     $stmt->execute();
-    header("Location: /doctor_page.php?id=$doctor_id");
+    header("Location: doctor-page.php?id=$doctor_id&patient_id=$patient_id");
     exit;
 }
 ?>
@@ -243,3 +243,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['record_response']) && 
     </div> <!-- page -->
 </body>
 </html>
+
