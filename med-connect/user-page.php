@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['record_text']) && isse
     $stmt = $conn->prepare("INSERT INTO patient_records (patient_id, record_text, doctor_id, date) VALUES (?, ?, ?, NOW())");
     $stmt->bind_param("isi", $patient_id, $record_text, $doctor_id);
     $stmt->execute();
-    header("Location: med-connect/user-page.php/?id=$patient_id");
+    header("Location: user-page.php?id=$patient_id");
     exit;
 }
 
@@ -199,3 +199,4 @@ if ($selected_doctor_id) {
     </div> <!-- page -->
 </body>
 </html>
+
