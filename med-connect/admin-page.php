@@ -20,83 +20,81 @@ include "db.php";
             
             <div class="main-box">
                 <div class="box-field" style="height:100%; width:100%">
-                        <div class="box" style="width: 350px; height:500px">
-                            <div class="box-title">Visi pacienti</div>
-                            <?php
-                                // Fetch all patients
-                                function getPatients($conn) {
-                                    $sql = "SELECT id, first_name, last_name FROM patients";
-                                    $result = $conn->query($sql);
-                                    $patients = [];
-                                    if ($result->num_rows > 0) {
-                                        while ($row = $result->fetch_assoc()) {
-                                            $patients[] = $row;
-                                        }
+                        <div class="box" style="width: 350px; height:500px;">
+                        <div class="box-title">Visi Pacienti</div>
+                        <?php
+                            // Fetch all patients
+                            function getPatients($conn) {
+                                $sql = "SELECT id, first_name, last_name, email, phone FROM patients";
+                                $result = $conn->query($sql);
+                                $patients = [];
+                                if ($result->num_rows > 0) {
+                                    while ($row = $result->fetch_assoc()) {
+                                        $patients[] = $row;
                                     }
-                                    return $patients;
                                 }
+                                return $patients;
+                            }
 
-                                // Fetch patient records
-                                function getPatientRecords($conn, $patient_id) {
-                                    $sql ="SELECT id, record_text, date
-                                            FROM patient_records
-                                            WHERE patient_id = ?";
-                                    $stmt = $conn->prepare($sql);
-                                    $stmt->bind_param("i", $patient_id);
-                                    $stmt->execute();
-                                    $result = $stmt->get_result();
-                                    $records = [];
-                                    if ($result->num_rows > 0) {
-                                        while ($row = $result->fetch_assoc()) {
-                                            $records[] = $row;
-                                        }
-                                    }
-                                    return $records;
+                            // Fetch patient profiles
+                            function getPatientProfile($conn, $patient_id) {
+                                $sql = "SELECT id, first_name, last_name, email, phone, med_history FROM patients WHERE id = ?";
+                                $stmt = $conn->prepare($sql);
+                                $stmt->bind_param("i", $patient_id);
+                                $stmt->execute();
+                                $result = $stmt->get_result();
+                                $patprofile = null;
+                                if ($result->num_rows > 0) {
+                                    $patprofile = $result->fetch_assoc();
                                 }
+                                return $patprofile;
+                            }
 
-                                // Get all patients
-                                $patients = getPatients($conn);
+                            // Get all patients
+                            $patients = getPatients($conn);
 
-                                // If a patient is selected, get their records
-                                $selected_patient_id = isset($_GET['patient_id']) ? intval($_GET['patient_id']) : null;
-                                $patient_records = [];
-                                if ($selected_patient_id) {
-                                    $patient_records = getPatientRecords($conn, $selected_patient_id);
-                                }
+                            // If a patient is selected, get their profile
+                            $selected_patient_id = isset($_GET['patient_id']) ? intval($_GET['patient_id']) : null;
+                            $patient_profile = null;
+                            if ($selected_patient_id) {
+                                $patient_profile = getPatientProfile($conn, $selected_patient_id);
+                            }
+                        ?>
 
-                                ?>
+                        <div class="form-group">
+                            <form method="GET" action="">
+                                <select class="form-select" name="patient_id" onchange="this.form.submit()">
+                                    <option value="">Izvēlieties pacientu</option>
+                                    <?php foreach ($patients as $patient): ?>
+                                        <option value="<?php echo $patient['id']; ?>" <?php echo ($selected_patient_id == $patient['id']) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($patient['first_name'] . ' ' . $patient['last_name']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </form>
+                        </div>
 
-                                <div class="form-group">
-                                    <form method="GET" action="">
-                                        <select class="form-select" name="patient_id" onchange="this.form.submit()">
-                                            <option value="">Izvēlieties lietotāju</option>
-                                            <?php foreach ($patients as $patient): ?>
-                                                <option value="<?php echo $patient['id']; ?>" <?php echo ($selected_patient_id == $patient['id']) ? 'selected' : ''; ?>>
-                                                    <?php echo htmlspecialchars($patient['first_name'] . ' ' . $patient['last_name']); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </form>
+                        <?php if ($patient_profile): ?>
+                            <div class="info-box" style="flex-direction:column;">
+                                <div class="info-box-title">
+                                    <?php echo htmlspecialchars($patient_profile['first_name'] . ' ' . $patient_profile['last_name']); ?>
                                 </div>
-
-                        <?php if (!empty($patient_records)): ?>
-                            <?php foreach ($patient_records as $record): ?>
-                                <div class="info-box">
-                                    <div>
-                                        <?php echo htmlspecialchars($record['record_text']); ?>
-                                    </div>
-                                    <div class="info-box-date">
-                                        <?php echo htmlspecialchars($record['date']); ?>
-                                    </div>                                    
+                                <div>
+                                    <?php echo "E-pasts: " . htmlspecialchars($patient_profile['email']); ?>
                                 </div>
-                            <?php endforeach; ?>
+                                <div>
+                                    <?php echo "Tel.nr.: " . htmlspecialchars($patient_profile['phone']); ?>
+                                </div>
+                                <div>
+                                    <?php echo "Medicīniskā vēsture: " . htmlspecialchars($patient_profile['med_history']); ?>
+                                </div>
+                            </div>
                         <?php else: ?>
-                            <p>Šim pacientam ieraksti vel nav izveidoti.</p>
+                            <p>Šim pacientam profila informācija nav atrasta.</p>
                         <?php endif; ?>
-                    </div>
+                        </div>
 
                             
-
                         <div class="box" style="width: 350px; height:500px;">
                         <div class="box-title">Visi ārsti</div>
                         <?php
@@ -209,7 +207,7 @@ include "db.php";
                                             </div>
 
                                             <div class="form-group">
-                                                <textarea class="form-textarea" name="med_history" placeholder="Ievadiet nozīmīgu info šeit..." style="height: 50px;"></textarea>
+                                                <textarea class="form-textarea" name="med_history" placeholder="Ievadiet nozīmīgu informāciju šeit..." style="height: 50px;"></textarea>
                                             </div>
 
                                             <button class="main-button" type="submit" name="submit" style="margin-top: 0;">Pievienot lietotāju</button>
@@ -244,6 +242,7 @@ include "db.php";
                                             } else {
                                                 echo "Kļūda sagatavojot pieprasījumu: " . $conn->error;
                                             }
+                                            
                                         }?>
                                 </form>
                             </div>
